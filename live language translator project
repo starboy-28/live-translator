@@ -1,0 +1,87 @@
+ live language transaltor
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Language Translator</title>
+</head>
+<body>
+    <h1>Live Language Translator</h1>
+    <label for="sourceLang">Source Language:</label>
+    <select id="sourceLang">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <!-- Add more language options here -->
+    </select>
+    <br>
+    <label for="targetLang">Target Language:</label>
+    <select id="targetLang">
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+        <!-- Add more language options here -->
+    </select>
+    <br>
+    <textarea id="inputText" placeholder="Enter text to translate"></textarea>
+    <br>
+    <button id="translateButton">Translate</button>
+    <div id="translationResult"></div>
+
+    <script src="translator.js"></script>
+</body>
+</html>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const translateButton = document.getElementById("translateButton");
+    const inputText = document.getElementById("inputText");
+    const sourceLang = document.getElementById("sourceLang");
+    const targetLang = document.getElementById("targetLang");
+    const translationResult = document.getElementById("translationResult");
+
+    translateButton.addEventListener("click", function () {
+        const text = inputText.value;
+        const source = sourceLang.value;
+        const target = targetLang.value;
+
+        // Send the text, source language, and target language to the server
+        fetch(`translate.php?text=${text}&source=${source}&target=${target}`)
+            .then((response) => response.text())
+            .then((result) => {
+                translationResult.textContent = result;
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    });
+});
+<?php
+$host = "localhost";
+$username = "root"; // Change this to your MySQL username
+$password = ""; // Change this to your MySQL password
+$database = "language_translator"; // Change this to your database name
+
+$conn = mysqli_connect($host, $username, $password, $database);
+
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+$text = $_GET['text'];
+$sourceLang = $_GET['source'];
+$targetLang = $_GET['target'];
+
+// Query the database to retrieve translations
+$query = "SELECT translation FROM translations WHERE source_lang='$sourceLang' AND target_lang='$targetLang' AND source_text='$text'";
+$result = mysqli_query($conn, $query);
+
+if (mysqli_num_rows($result) > 0) {
+    $row = mysqli_fetch_assoc($result);
+    $translation = $row['translation'];
+    echo $translation;
+} else {
+    echo "Translation not found in the database.";
+}
+
+mysqli_close($conn);
+?>
+
